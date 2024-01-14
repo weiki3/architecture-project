@@ -1,7 +1,6 @@
 #ifndef CPU_BFS_H
 #define CPU_BFS_H
 
-#include <queue>
 #include <bits/stdc++.h>
 
 #include "./graph.h"

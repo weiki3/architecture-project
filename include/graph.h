@@ -5,10 +5,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include <vector>
-#include <string>
-#include <iostream>
-#include <sstream>
+#include <bits/stdc++.h>
 
 enum Direction
 {

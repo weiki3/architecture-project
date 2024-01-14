@@ -78,6 +78,7 @@ void cuda_bfs(int start, Graph &my_graph, vector<int> &distance, vector<bool> &i
 	cudaMemcpy(device_next_queue_size, &NEXT_QUEUE_SIZE, sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(device_first_queue, &start, sizeof(int), cudaMemcpyHostToDevice);
 
+	// 完成内存拷贝，开始运行 CUDA BFS
 	clock_t start_time = clock();
 	distance = vector<int> (my_graph.vertex_num, INT_MAX);
 	distance[start] = 0;

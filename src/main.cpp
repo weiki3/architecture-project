@@ -23,6 +23,7 @@ int main()
     double duration = ((double)(end_time - start_time));
     printf("Elapsed time for CPU implementation : %.1lf ms.\n", duration);
 
+    // 检查结果正确性
     Checker checker(distance);
 
     // 使用 GPU-CUDA 做 BFS
@@ -33,6 +34,7 @@ int main()
     duration = ((double)(end_time - start_time));
     printf("Elapsed time for naive linear GPU implementation (with graph copying) : %.1lf ms.\n", duration);
 
+    // 检查结果正确性
     checker.check(distance);
 
     return 0;

@@ -41,6 +41,6 @@ void Checker::check(vector<int> answer)
     }
     else
     {
-        printf("结果错误", position_wrong, answer[position_wrong], expected_answer[position_wrong]);
+        printf("结果错误\n");
     }
 }

@@ -8,7 +8,7 @@
 using namespace std;
 
 
-void print(vector<int> &v);
+// void print(vector<int> &v);
 
 
 class Checker {
@@ -89,13 +89,12 @@ int main() {  // TODO: Add arguments to main program (type of graph, file path)
 	return 0;
 }
 
-
-void print(vector<int> &v) {
-	cout << "{ ";
-	for (int i = 0; i < v.size(); ++i) {
-		cout << v[i];
-		if (i < v.size() - 1)
-			cout << ", ";
-	}
-	cout << " }" << endl;
-}
+// void print(vector<int> &v) {
+// 	cout << "{ ";
+// 	for (int i = 0; i < v.size(); ++i) {
+// 		cout << v[i];
+// 		if (i < v.size() - 1)
+// 			cout << ", ";
+// 	}
+// 	cout << " }" << endl;
+// }

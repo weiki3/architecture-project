@@ -19,3 +19,5 @@ linux + cuda，需要在加载英伟达 GPU 的平台上，配置好 cuda，可�
 ### 运行
 
 运行 `./bin/bfs_test` 
+
+若权限不足，执行 `chmod u+x run.sh`

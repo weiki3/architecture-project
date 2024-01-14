@@ -5,6 +5,6 @@
 #include <bits/stdc++.h>
 
 
-void cuda_bfs(int start, Graph &G, std::vector<int> &distance, std::vector<bool> &visited);
+void cuda_bfs(int start, Graph &G, std::vector<int> &distance, std::vector<bool> &is_visited);
 
 #endif

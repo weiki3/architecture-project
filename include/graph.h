@@ -19,21 +19,21 @@ enum Format
 {
     Empty,
     Edges,
-    AdjacencyList
+    adjacency_list
 };
 
 class Graph
 {
 public:
     Graph();
-    std::vector<int> adjacencyList; // neighbours of consecutive vertexes
-    std::vector<int> edgesOffset;   // offset to adjacencyList for every vertex
-    std::vector<int> edgesSize;     // number of edges for every vertex
-    int numVertices;
-    int numEdges;
+    std::vector<int> adjacency_list; // neighbours of consecutive vertexes
+    std::vector<int> edge_offset;    // offset to adjacency_list for every vertex
+    std::vector<int> edges_size;     // number of edges for every vertex
+    int vertex_num;
+    int edge_num;
 
 private:
-    void init(std::vector<std::vector<int>> adjacencyList, int numEdges);
+    void initialize(std::vector<std::vector<int>> adjacency_list, int edge_num);
 };
 
 #endif // GRAPH_H

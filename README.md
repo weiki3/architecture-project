@@ -4,7 +4,7 @@ SYSU Computer Architecture Project
 
 ## Plan B: Parallel BFS on Many-core (GPU-CUDA)
 
-使用 Nvidia GPU 的 CUDA 计数完成多核并行广度有限算法
+使用 Nvidia GPU 的 CUDA 计数完成多核并行广度优先算法
 
 ### 实验环境
 

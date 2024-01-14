@@ -14,7 +14,9 @@ linux + cuda，需要在加载英伟达 GPU 的平台上，配置好 cuda，可�
 
 运行 `make.sh`，编译结果保存在 ./bin/bfs_test
 
-若权限不足，执行 `chmod u+x make.sh`
+若权限不足，执行 `chmod u+x make.sh`  
+
+> 编译耗时比较久，请耐心等待
 
 ### 运行
 

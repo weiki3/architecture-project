@@ -65,7 +65,7 @@ public:
 int main()
 { // TODO: Add arguments to main program (type of graph, file path)
     // Graph G(AdjacencyList, Directed);
-    Graph G;
+    Graph G();
     int startVertex;
     vector<int> distance;
     vector<bool> visited;

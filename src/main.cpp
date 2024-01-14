@@ -21,7 +21,7 @@ int main()
     cpu_bfs(start, my_graph, distance, is_visited);
     clock_t end_time = clock();
     double duration = ((double)(end_time - start_time));
-    printf("Elapsed time for CPU implementation : %.1lf ms.\n", duration);
+    printf("使用 CPU 完成 BFS 开销为: %.1lf ms.\n", duration);
 
     // 检查结果正确性
     Checker checker(distance);
@@ -32,7 +32,7 @@ int main()
     cuda_bfs(start, my_graph, distance, is_visited);
     end_time = clock();
     duration = ((double)(end_time - start_time));
-    printf("Elapsed time for naive linear GPU implementation (with graph copying) : %.1lf ms.\n", duration);
+    printf("使用 GPU-CUDA 完成 BFS 开销（含将图拷贝到 GPU 内存时间）为: %.1lf ms.\n", duration);
 
     // 检查结果正确性
     checker.check(distance);

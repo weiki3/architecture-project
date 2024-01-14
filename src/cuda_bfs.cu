@@ -109,10 +109,13 @@ void cuda_bfs(int start, Graph &my_graph, vector<int> &distance, vector<bool> &i
     cudaMemcpy(&distance[0], device_distance_array, vertex_size, cudaMemcpyDeviceToHost);
     clock_t end_time = clock();
     double duration = ((double)(end_time - start_time));
-    printf("Elapsed time for naive linear GPU implementation (without copying graph): %.1lf ms.\n", duration);
+    printf("使用 GPU-CUDA 完成 BFS 开销（不含将图拷贝到 GPU 内存时间）为: %.1lf ms.\n", duration);
 
-    // 释放 GPU 内存空间
+    // 释放 gpu 内存空间
     cudaFree(device_adjacency_list);
     cudaFree(device_edges_offset);
     cudaFree(device_edges_size);
     cudaFree(device_first_queue);
+    cudaFree(device_second_queue);
+    cudaFree(device_distance_array);
+}

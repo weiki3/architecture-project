@@ -64,7 +64,6 @@ public:
 // Tests speed of a BFS algorithm
 int main()
 { // TODO: Add arguments to main program (type of graph, file path)
-    // Graph G(AdjacencyList, Directed);
     Graph G;
     int startVertex;
     vector<int> distance;

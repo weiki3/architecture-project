@@ -19,15 +19,6 @@ void initializeDeviceArray(int n, int *d_arr, int value, int start_index) {
 }
 
 
-__global__
-void printDeviceArray(int *d_arr, int n) {
-	const int tid = blockIdx.x * blockDim.x + threadIdx.x;
-	if (tid < n) {
-		printf("d_arr[%i] = %i \n", tid, d_arr[tid]);
-	}
-}
-
-
 /*
  * Given a graph and a current queue computes next vertices (vertex frontiers) to traverse.
  */

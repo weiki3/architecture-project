@@ -6,7 +6,7 @@ using namespace std;
 #define N_THREADS_PER_BLOCK (1 << 5)
 
 
-
+// 初始化 cuda 中的数组
 __global__
 void init_cuda_array(int n, int *d_arr, int value, int start_index) {
 	const int tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -19,14 +19,15 @@ void init_cuda_array(int n, int *d_arr, int value, int start_index) {
 }
 
 
-/*
- * Given a graph and a current queue computes next vertices (vertex frontiers) to traverse.
- */
+// 已知图和当前队列，寻找下一层遍历的队列
 __global__
 void find_next_queue(int *adjacency_list, int *edge_offset, int *edges_size, int *distance,
 		int queue_size, int *cur_queue, int *next_queue_size, int *next_queue, int level) {
-	const int tid = blockIdx.x * blockDim.x + threadIdx.x;  // thread id
-	if (tid < queue_size) {  // visit all vertexes in a queue in parallel
+
+	// 获取线程信息
+	const int tid = blockIdx.x * blockDim.x + threadIdx.x; 
+	// 并行遍历队列
+	if (tid < queue_size) {
 		int current = cur_queue[tid];
 		for (int i = edge_offset[current]; i < edge_offset[current] + edges_size[current]; ++i) {
 			int v = adjacency_list[i];
@@ -40,82 +41,77 @@ void find_next_queue(int *adjacency_list, int *edge_offset, int *edges_size, int
 }
 
 
-void cuda_bfs(int start, Graph &G, vector<int> &distance, vector<bool> &is_visited) {
+void cuda_bfs(int start, Graph &my_graph, vector<int> &distance, vector<bool> &is_visited) {
 
 
-	const int n_blocks = (G.vertex_num + N_THREADS_PER_BLOCK - 1) / N_THREADS_PER_BLOCK;
-
-	// Initialization of GPU variables
-	int *d_adjacencyList;
-	int *d_edgesOffset;
-	int *d_edgesSize;
-	int *d_firstQueue;
-	int *d_secondQueue;
-	int *d_nextQueueSize;
-	int *d_distance; // output
-
-
-	// Initialization of CPU variables
-	int currentQueueSize = 1;
+	const int N_BLOCKS = (my_graph.vertex_num + N_THREADS_PER_BLOCK - 1) / N_THREADS_PER_BLOCK;
 	const int NEXT_QUEUE_SIZE = 0;
+
+	// 初始化 cuda 中的变量
+	int *device_adjacency_list;
+	int *device_edges_offset;
+	int *device_edges_size;
+	int *device_start_queue;
+	int *device_next_queue;
+	int *device_next_queue_size;
+	int *device_distance_array; // output
+
+	// 初始化位于 cpu 中的变量
+	int cur_queue_size = 1;
 	int level = 0;
 
-	// Allocation on device
-	const int size = G.vertex_num * sizeof(int);
-	const int adjacencySize = G.adjacency_list.size() * sizeof(int);
-	cudaMalloc((void **)&d_adjacencyList, adjacencySize);
-	cudaMalloc((void **)&d_edgesOffset, size);
-	cudaMalloc((void **)&d_edgesSize, size);
-	cudaMalloc((void **)&d_firstQueue, size);
-	cudaMalloc((void **)&d_secondQueue, size);
-	cudaMalloc((void **)&d_distance, size);
-	cudaMalloc((void **)&d_nextQueueSize, sizeof(int));
+	// 在 gpu 上分配内存空间，并输入图数据
+	int vertex_size = my_graph.vertex_num * sizeof(int);
+	int adjacency_list_size = my_graph.adjacency_list.size() * sizeof(int);
+	cudaMalloc((void **)&device_adjacency_list, adjacency_list_size);
+	cudaMalloc((void **)&device_edges_offset, vertex_size);
+	cudaMalloc((void **)&device_edges_size, vertex_size);
+	cudaMalloc((void **)&device_start_queue, vertex_size);
+	cudaMalloc((void **)&device_next_queue, vertex_size);
+	cudaMalloc((void **)&device_distance_array, vertex_size);
+	cudaMalloc((void **)&device_next_queue_size, sizeof(int));
 
 
-	// Copy inputs to device
+	cudaMemcpy(device_adjacency_list, &my_graph.adjacency_list[0], adjacency_list_size, cudaMemcpyHostToDevice);
+	cudaMemcpy(device_edges_offset, &my_graph.edge_offset[0], vertex_size, cudaMemcpyHostToDevice);
+	cudaMemcpy(device_edges_size, &my_graph.edges_size[0], vertex_size, cudaMemcpyHostToDevice);
+	cudaMemcpy(device_next_queue_size, &NEXT_QUEUE_SIZE, sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(device_start_queue, &start, sizeof(int), cudaMemcpyHostToDevice);
 
-	cudaMemcpy(d_adjacencyList, &G.adjacency_list[0], adjacencySize, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_edgesOffset, &G.edge_offset[0], size, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_edgesSize, &G.edges_size[0], size, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_nextQueueSize, &NEXT_QUEUE_SIZE, sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(d_firstQueue, &start, sizeof(int), cudaMemcpyHostToDevice);
-//	init_cuda_array<<<n_blocks, N_THREADS_PER_BLOCK>>> (G.vertex_num, d_distance, INT_MAX, start); // FOR SOME REASON USING THIS KERNEL DOESNT WORK
-//	cudaDeviceSynchronize();
-
-	auto start_time = chrono::steady_clock::now();
-	distance = vector<int> (G.vertex_num, INT_MAX);
+	clock_t start_time = clock();
+	distance = vector<int> (my_graph.vertex_num, INT_MAX);
 	distance[start] = 0;
-	cudaMemcpy(d_distance, distance.data(), size, cudaMemcpyHostToDevice);
+	cudaMemcpy(device_distance_array, distance.data(), vertex_size, cudaMemcpyHostToDevice);
 
-	while (currentQueueSize > 0) {
-		int *d_currentQueue;
-		int *d_nextQueue;
+	while (cur_queue_size > 0) {
+		int *device_cur_queue;
+		int *device_next_queue;
 		if (level % 2 == 0) {
-			d_currentQueue = d_firstQueue;
-			d_nextQueue = d_secondQueue;
+			device_cur_queue = device_start_queue;
+			device_next_queue = device_next_queue;
 		}
 		else {
-			d_currentQueue = d_secondQueue;
-			d_nextQueue = d_firstQueue;
+			device_cur_queue = device_next_queue;
+			device_next_queue = device_start_queue;
 		}
-		find_next_queue<<<n_blocks, N_THREADS_PER_BLOCK>>> (d_adjacencyList, d_edgesOffset, d_edgesSize, d_distance,
-				currentQueueSize, d_currentQueue, d_nextQueueSize, d_nextQueue, level);
+		find_next_queue<<<N_BLOCKS, N_THREADS_PER_BLOCK>>> (device_adjacency_list, device_edges_offset, device_edges_size, device_distance_array,
+				cur_queue_size, device_cur_queue, device_next_queue_size, device_next_queue, level);
 		cudaDeviceSynchronize();
-		++level;
-		cudaMemcpy(&currentQueueSize, d_nextQueueSize, sizeof(int), cudaMemcpyDeviceToHost);
-		cudaMemcpy(d_nextQueueSize, &NEXT_QUEUE_SIZE, sizeof(int), cudaMemcpyHostToDevice);
+		cudaMemcpy(&cur_queue_size, device_next_queue_size, sizeof(int), cudaMemcpyDeviceToHost);
+		cudaMemcpy(device_next_queue_size, &NEXT_QUEUE_SIZE, sizeof(int), cudaMemcpyHostToDevice);
+		level++;
 	}
 
-	cudaMemcpy(&distance[0], d_distance, size, cudaMemcpyDeviceToHost);
-	auto end_time = std::chrono::steady_clock::now();
-	auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
-	printf("Elapsed time for naive linear GPU implementation (without copying graph) : %li ms.\n", duration);
+	cudaMemcpy(&distance[0], device_distance_array, vertex_size, cudaMemcpyDeviceToHost);
+	clock_t end_time = clock();
+	double duration = ((double)(end - start));
+	printf("Elapsed time for naive linear GPU implementation (without copying graph) : %lf ms.\n", duration);
 
-	// Cleanup
-	cudaFree(d_adjacencyList);
-	cudaFree(d_edgesOffset);
-	cudaFree(d_edgesSize);
-	cudaFree(d_firstQueue);
-	cudaFree(d_secondQueue);
-	cudaFree(d_distance);
+	// 释放 gpu 内存空间
+	cudaFree(device_adjacency_list);
+	cudaFree(device_edges_offset);
+	cudaFree(device_edges_size);
+	cudaFree(device_start_queue);
+	cudaFree(device_next_queue);
+	cudaFree(device_distance_array);
 }

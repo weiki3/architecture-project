@@ -2,7 +2,7 @@
 
 using namespace std;
 
-void cpu_bfs(int start, Graph &G, std::vector<int> &distance, std::vector<bool> &is_visited)
+void cpu_bfs(int start, Graph &my_graph, std::vector<int> &distance, std::vector<bool> &is_visited)
 {
 	fill(distance.begin(), distance.end(), INT_MAX);
 	distance[start] = 0;
@@ -13,9 +13,9 @@ void cpu_bfs(int start, Graph &G, std::vector<int> &distance, std::vector<bool> 
 	{
 		int current = to_visit.front();
 		to_visit.pop();
-		for (int i = G.edge_offset[current]; i < G.edge_offset[current] + G.edges_size[current]; ++i)
+		for (int i = my_graph.edge_offset[current]; i < my_graph.edge_offset[current] + my_graph.edges_size[current]; ++i)
 		{
-			int v = G.adjacency_list[i];
+			int v = my_graph.adjacency_list[i];
 			if (distance[v] == INT_MAX)
 			{
 				distance[v] = distance[current] + 1;

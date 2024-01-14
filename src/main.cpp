@@ -1,5 +1,5 @@
 #include <iostream>
-#include <chrono>
+#include <time.h>
 
 #include "../include/graph.h"
 #include "../include/cpu_bfs.h"
@@ -72,21 +72,21 @@ int main()
     // 使用 CPU 做 BFS
     distance = vector<int>(my_graph.vertex_num);
     is_visited = vector<bool>(my_graph.vertex_num);
-    auto start_time = chrono::steady_clock::now();
+    clock_t start_time = clock();
     cpu_bfs(start, my_graph, distance, is_visited);
-    auto end_time = chrono::steady_clock::now();
-    long duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
-    printf("Elapsed time for CPU implementation : %li ms.\n", duration);
+    clock_t end_time = clock();
+    double duration = ((double)(end_time - start_time));
+    printf("Elapsed time for CPU implementation : %lf ms.\n", duration);
 
     Checker checker(distance);
 
     // 使用 GPU-CUDA 做 BFS
     distance = vector<int>(my_graph.vertex_num);
-    start_time = chrono::steady_clock::now();
+    start_time = clock();
     cuda_bfs(start, my_graph, distance, is_visited);
-    end_time = std::chrono::steady_clock::now();
-    duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
-    printf("Elapsed time for naive linear GPU implementation (with graph copying) : %li ms.\n", duration);
+    end_time = clock();
+    duration = ((double)(end_time - start_time));
+    printf("Elapsed time for naive linear GPU implementation (with graph copying) : %lf ms.\n", duration);
 
     checker.check(distance);
 

@@ -51,8 +51,8 @@ void cuda_bfs(int start, Graph &my_graph, vector<int> &distance, vector<bool> &i
 	int *device_adjacency_list;
 	int *device_edges_offset;
 	int *device_edges_size;
-	int *device_start_queue;
-	int *device_next_queue;
+	int *device_first_queue;
+	int *device_second_queue;
 	int *device_next_queue_size;
 	int *device_distance_array; // output
 
@@ -66,8 +66,8 @@ void cuda_bfs(int start, Graph &my_graph, vector<int> &distance, vector<bool> &i
 	cudaMalloc((void **)&device_adjacency_list, adjacency_list_size);
 	cudaMalloc((void **)&device_edges_offset, vertex_size);
 	cudaMalloc((void **)&device_edges_size, vertex_size);
-	cudaMalloc((void **)&device_start_queue, vertex_size);
-	cudaMalloc((void **)&device_next_queue, vertex_size);
+	cudaMalloc((void **)&device_first_queue, vertex_size);
+	cudaMalloc((void **)&device_second_queue, vertex_size);
 	cudaMalloc((void **)&device_distance_array, vertex_size);
 	cudaMalloc((void **)&device_next_queue_size, sizeof(int));
 
@@ -76,7 +76,7 @@ void cuda_bfs(int start, Graph &my_graph, vector<int> &distance, vector<bool> &i
 	cudaMemcpy(device_edges_offset, &my_graph.edge_offset[0], vertex_size, cudaMemcpyHostToDevice);
 	cudaMemcpy(device_edges_size, &my_graph.edges_size[0], vertex_size, cudaMemcpyHostToDevice);
 	cudaMemcpy(device_next_queue_size, &NEXT_QUEUE_SIZE, sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(device_start_queue, &start, sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(device_first_queue, &start, sizeof(int), cudaMemcpyHostToDevice);
 
 	clock_t start_time = clock();
 	distance = vector<int> (my_graph.vertex_num, INT_MAX);
@@ -87,12 +87,12 @@ void cuda_bfs(int start, Graph &my_graph, vector<int> &distance, vector<bool> &i
 		int *device_cur_queue;
 		int *device_next_queue;
 		if (level % 2 == 0) {
-			device_cur_queue = device_start_queue;
-			device_next_queue = device_next_queue;
+			device_cur_queue = device_first_queue;
+			device_next_queue = device_second_queue;
 		}
 		else {
-			device_cur_queue = device_next_queue;
-			device_next_queue = device_start_queue;
+			device_cur_queue = device_second_queue;
+			device_next_queue = device_first_queue;
 		}
 		find_next_queue<<<N_BLOCKS, N_THREADS_PER_BLOCK>>> (device_adjacency_list, device_edges_offset, device_edges_size, device_distance_array,
 				cur_queue_size, device_cur_queue, device_next_queue_size, device_next_queue, level);
@@ -111,7 +111,7 @@ void cuda_bfs(int start, Graph &my_graph, vector<int> &distance, vector<bool> &i
 	cudaFree(device_adjacency_list);
 	cudaFree(device_edges_offset);
 	cudaFree(device_edges_size);
-	cudaFree(device_start_queue);
-	cudaFree(device_next_queue);
+	cudaFree(device_first_queue);
+	cudaFree(device_second_queue);
 	cudaFree(device_distance_array);
 }

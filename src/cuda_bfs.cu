@@ -49,7 +49,7 @@ void computeNextQueue(int *adjacencyList, int *edgesOffset, int *edgesSize, int 
 }
 
 
-void bfsGPU(int start, Graph &G, vector<int> &distance, vector<bool> &visited) {
+void cuda_bfs(int start, Graph &G, vector<int> &distance, vector<bool> &visited) {
 
 
 	const int n_blocks = (G.numVertices + N_THREADS_PER_BLOCK - 1) / N_THREADS_PER_BLOCK;

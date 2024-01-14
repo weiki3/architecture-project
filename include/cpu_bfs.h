@@ -6,6 +6,6 @@
 
 #include "./graph.h"
 
-void bfsCPU(int start, Graph &G, std::vector<int> &distance, std::vector<bool> &visited);
+void cpu_bfs(int start, Graph &G, std::vector<int> &distance, std::vector<bool> &visited);
 
 #endif
